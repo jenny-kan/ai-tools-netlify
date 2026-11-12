@@ -1,0 +1,21 @@
+# pnpm 10+ reads its settings from this file (not package.json).
+# Only these dependencies are allowed to run install scripts — everything
+# else installs with scripts blocked by default (supply-chain hardening).
+# Prisma needs its scripts to generate the client and fetch query engines.
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+  esbuild: true
+
+# esbuild 0.27+ darwin binaries are built with Go 1.25 and linked against
+# macOS-13-only symbols (dyld: Symbol not found:
+# _SecTrustCopyCertificateChain); they abort on macOS 12 and older —
+# including the 10.15/11/12 Intel Macs this project targets (see
+# DEPLOY-MACOS.md). 0.26.0 is the last clean release (Go 1.23); we pin
+# 0.23.1 (Go 1.22 → runs on macOS 10.15+), verified by running the real
+# seed scripts with tsx 4.23.x against this exact version. The override
+# applies to every esbuild in the tree (recorded in pnpm-lock.yaml; bun
+# reads the npm-style "overrides" field in package.json).
+overrides:
+  esbuild: 0.23.1

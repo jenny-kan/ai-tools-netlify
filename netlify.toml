@@ -1,0 +1,29 @@
+# Netlify configuration.
+#
+# The official Next.js runtime plugin turns the standard `next build` output
+# into Netlify Functions — no standalone server involved (`output:
+# "standalone"` in next.config.ts is skipped automatically when NETLIFY is
+# set, and scripts/postbuild.mjs skips the self-hosting packaging).
+#
+# pnpm is picked up automatically via the `packageManager` field in
+# package.json (corepack), so `pnpm install` + the `postinstall` hook
+# (Prisma provider auto-selection + `prisma generate`) run as-is.
+#
+# Environment variables to set in the Netlify UI (or via `netlify env:set`) —
+# same table as the Vercel walkthrough in DEPLOYMENT.md §1.4:
+#   DATABASE_URL (Neon POOLED, :6543, +?sslmode=require&connection_limit=1)
+#   DIRECT_DATABASE_URL (Neon direct, :5432)
+#   ADMIN_PASSWORD / ADMIN_SECRET / NEXT_PUBLIC_SITE_URL (+ optional email)
+
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  # package.json engines requires Node >= 20.19; pin the build/runtime to 22.
+  NODE_VERSION = "22"
+
+[[plugins]]
+  # Intentionally unpinned — Netlify resolves the latest runtime, which
+  # tracks the newest Next.js releases.
+  package = "@netlify/plugin-nextjs"

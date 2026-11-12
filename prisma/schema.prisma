@@ -1,0 +1,196 @@
+// Prisma 7: the new Rust-free "prisma-client" generator.
+// output is REQUIRED in Prisma 7 — the client is generated into
+// src/generated/prisma (gitignored; created by `prisma generate`,
+// which runs on postinstall).
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// PostgreSQL only (Neon in production — see DEPLOYMENT.md).
+//
+// DATABASE_URL        → the POOLED connection (Neon: port 6543, pgbouncer) —
+//                       used by the app at runtime.
+// DIRECT_DATABASE_URL → the DIRECT connection (Neon: port 5432) — used by
+//                       prisma migrate / db push.
+// Both URLs are wired up in prisma.config.ts (Prisma 7: url/directUrl in
+// the datasource block are deprecated — the config file drives the CLI).
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @default("")
+  icon        String   @default("Sparkles")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tools       Tool[]
+}
+
+model Tool {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  shortDescription  String
+  description       String   @default("")
+  example           String   @default("")
+  freePlanLimits    String   @default("")
+  useCases          String   @default("")
+  officialUrl       String
+  pricingModel      String // FREE | FREEMIUM | PAID
+  hasFreeTrial      Boolean  @default(false)
+  trialNote         String   @default("")
+  pricingLastChecked DateTime @default(now())
+  status            String   @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  categoryId        String
+  category          Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+  @@index([categoryId])
+}
+
+// ------------------------------------------------------------------ blog
+
+/** Blogger accounts: people apply, an admin approves, then they can write. */
+model Blogger {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String
+  passwordHash       String
+  bio                String    @default("")
+  status             String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED
+  applicationReason  String    @default("")
+  writingSample      String    @default("")
+  reviewNote         String    @default("")
+  loginAttempts      Int       @default(0)
+  lockedUntil        DateTime?
+  appliedAt          DateTime  @default(now())
+  decidedAt          DateTime?
+  lastLoginAt        DateTime?
+  posts              BlogPost[]
+  sessions           BloggerSession[]
+  passwordResets     BloggerPasswordReset[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([status])
+}
+
+/** Server-side blogger sessions — raw token lives in an httpOnly cookie,
+ *  only its SHA-256 hash is stored, so a DB leak can't be replayed. */
+model BloggerSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  bloggerId String
+  blogger   Blogger  @relation(fields: [bloggerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([bloggerId])
+}
+
+/** Password-reset tokens: 256-bit random in the email link, only the SHA-256
+ *  hash is stored. Single-use (all of a blogger's tokens are deleted on
+ *  successful reset) and expire after 60 minutes. */
+model BloggerPasswordReset {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  bloggerId String
+  blogger   Blogger  @relation(fields: [bloggerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([bloggerId])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String
+  content     String // markdown source (rendered with HTML escaping)
+  tags        String    @default("") // comma-separated
+  status      String    @default("DRAFT") // DRAFT | SUBMITTED | PUBLISHED | REJECTED
+  reviewNote  String    @default("")
+  authorId    String
+  author      Blogger   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([authorId])
+}
+
+// -------------------------------------------------------------- monetization
+
+model Donation {
+  id          String   @id @default(cuid())
+  donorName   String
+  email       String   @default("")
+  amountCents Int
+  currency    String   @default("USD")
+  message     String   @default("")
+  status      String   @default("PENDING") // PENDING | COMPLETED | CANCELLED
+  provider    String   @default("demo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ----------------------------------------------------------------- analytics
+
+/** Privacy-friendly page views: anonymous session id, no PII, no cookies. */
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String   @default("")
+  sessionId String
+  toolSlug  String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([sessionId])
+}
+
+/** Security & moderation audit trail (OWASP A09 — logging failures). */
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  actorType String   @default("system") // admin | blogger | visitor | system
+  actorId   String   @default("")
+  details   String   @default("")
+  ip        String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  reason    String // FEEDBACK | ISSUE | SUGGESTION | TOOL_SUGGESTION | OTHER
+  subject   String
+  message   String
+  toolName  String   @default("") // populated when reason = TOOL_SUGGESTION
+  toolUrl   String   @default("") // populated when reason = TOOL_SUGGESTION
+  status    String   @default("NEW") // NEW | READ | ARCHIVED
+  // Admin email replies (sent server-side via Resend — never a mailto: link)
+  repliedAt    DateTime? // when the admin last replied by email
+  replyText    String    @default("") // last reply body (audit trail)
+  replyEmailId String    @default("") // provider message id ("" in dry-run mode)
+  ipAddress String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}

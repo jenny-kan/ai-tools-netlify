@@ -353,6 +353,24 @@ export interface AdminBlogOverviewDTO {
   posts: BlogPostDTO[];
 }
 
+// --------------------------------------------------------- system diagnostics
+
+/** GET /api/admin/system-status — deployment health for the admin banner. */
+export interface SystemStatusDTO {
+  database: {
+    connected: boolean;
+    schemaReady: boolean;
+    missingTables: string[];
+    error: string | null;
+    counts: { tools: number; published: number; categories: number } | null;
+  };
+  environment: {
+    node: string;
+    host: "netlify" | "vercel" | "self-hosted";
+  };
+  time: string;
+}
+
 // -------------------------------------------------------------- donations
 
 export type DonationStatus = "PENDING" | "COMPLETED" | "CANCELLED";

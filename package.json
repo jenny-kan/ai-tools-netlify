@@ -1,6 +1,6 @@
 {
   "name": "ai-tool-finder",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": true,
   "description": "A hand-checked directory of free and paid AI tools with a blogger-powered editorial blog, admin dashboard and privacy-friendly analytics.",
   "packageManager": "pnpm@12.18.0",
@@ -19,6 +19,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
+    "db:setup": "node scripts/db-setup.mjs",
     "db:push": "prisma db push --accept-data-loss && prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",

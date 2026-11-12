@@ -122,10 +122,29 @@ Neon connection. Netlify exposes env vars to the entire build, so
 them **before** the first deploy: the build fails closed without
 `DATABASE_URL` (the sitemap generation touches the database).
 
+`DIRECT_DATABASE_URL` is optional: when it's missing, the Neon direct host is
+derived automatically from the pooled `DATABASE_URL` (strip `-pooler`, port
+`5432`) — see `prisma.config.ts`.
+
 Deploy previews inherit the same variables — point them at a separate Neon
 branch if you want preview data isolated, but always keep the pooled URL.
 
-### 2.3 Netlify-specific notes
+### 2.3 Automatic schema provisioning
+
+**The Netlify build creates/updates the database schema for you** —
+`netlify.toml` runs `pnpm db:setup` (→ `prisma db push`, non-destructive)
+before `next build`. A fresh Neon database gets its tables on the first
+deploy; later deploys are a no-op unless the schema changed.
+
+The step is deliberately **non-fatal**: if it can't reach the database the
+build logs a loud warning and continues. The site then deploys, but every
+database action fails — in that case open **Admin → System status banner**,
+which shows the exact server error and the fix (or visit `/api` — it reports
+`{"database":"down"}` on a 503). Seeding demo content is still manual
+(`pnpm db:push && pnpm db:seed` from a checkout, §1.3) — you usually want to
+import your own data anyway.
+
+### 2.4 Netlify-specific notes
 
 - `output: "standalone"` is skipped automatically on Netlify (`NETLIFY` is
   detected in `next.config.ts`) — the runtime builds its functions from the
@@ -135,7 +154,8 @@ branch if you want preview data isolated, but always keep the pooled URL.
 - In-memory rate limiters are per-function-instance — see
   [SECURITY.md](./SECURITY.md).
 - Seeding: run once from a checkout against Neon (`pnpm db:push &&
-  pnpm db:seed`, §1.3) — Netlify doesn't run database migrations on deploy.
+  pnpm db:seed`, §1.3) if you want the demo content — the build itself only
+  provisions the schema (§2.3).
 
 ---
 
@@ -261,7 +281,9 @@ Put a reverse proxy (Caddy/nginx) in front for TLS.
 | Symptom | Cause / fix |
 | --- | --- |
 | Admin sign-in says "disabled" | `ADMIN_PASSWORD`/`ADMIN_SECRET` missing in the deployed environment |
-| `P1001: Can't reach database` | `DATABASE_URL` wrong, or you forgot `pnpm db:push` |
+| Deploy succeeded, but every admin action fails (500) | The database has no schema or is unreachable — a plain `next build` never touches it. Check **Admin → System status banner** (exact error + fix), then look for the `[db-setup]` block in the deploy build log. On Netlify the build provisions the schema automatically (§2.3) — a failed sync is the usual culprit (bad URL or paused Neon project) |
+| `P2021: table does not exist` | The schema was never pushed — redeploy (Netlify runs `pnpm db:setup`), or run `pnpm db:setup` from a checkout against your database |
+| `P1001: Can't reach database` | `DATABASE_URL` wrong, or the Neon project is paused (free tier) — resume it and redeploy |
 | Many `Timed out fetching a new connection` errors | You're using the **direct** (non-pooled) URL at runtime — switch `DATABASE_URL` to the pooled connection |
 | Reset emails not arriving | No `RESEND_API_KEY` (dry-run) — check the server logs for `[email:dry-run]` |
 | Cross-origin 403 on your own forms | The request reached the app through an unexpected proxy chain — check that `Sec-Fetch-Site` headers aren't stripped by your proxy, and see `isSameOrigin` in `src/lib/security.ts` |

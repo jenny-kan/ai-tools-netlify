@@ -20,6 +20,7 @@ import type {
   ImportRunResponseDTO,
   MessageStatus,
   ParseImportResponse,
+  SystemStatusDTO,
   ToolDTO,
   ToolDetailResponse,
   ToolInput,
@@ -143,6 +144,11 @@ export async function getAdminSession(): Promise<{
   demoPassword?: string;
 }> {
   return request<{ authenticated: boolean; disabled?: boolean; demoPassword?: string }>("/api/admin/session");
+}
+
+/** Deployment diagnostics — powers the System status banner in the dashboard. */
+export async function getSystemStatus(): Promise<SystemStatusDTO> {
+  return request<SystemStatusDTO>("/api/admin/system-status");
 }
 
 export async function adminLogin(password: string): Promise<{ ok: boolean }> {

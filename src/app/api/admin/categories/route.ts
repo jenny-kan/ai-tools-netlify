@@ -3,26 +3,31 @@ import { db } from "@/lib/db";
 import { isAdminAuthenticated, unauthorized } from "@/lib/admin-auth";
 import { forbiddenOrigin, isSameOrigin } from "@/lib/security";
 import { uniqueCategorySlug } from "@/lib/tool-service";
+import { serverError } from "@/lib/route-errors";
 
 /** Admin: all categories with total tool counts (all statuses). */
 export async function GET() {
   if (!(await isAdminAuthenticated())) return unauthorized();
 
-  const categories = await db.category.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { tools: true } } },
-  });
+  try {
+    const categories = await db.category.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { tools: true } } },
+    });
 
-  return NextResponse.json(
-    categories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      description: c.description,
-      icon: c.icon,
-      toolCount: c._count.tools,
-    }))
-  );
+    return NextResponse.json(
+      categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        icon: c.icon,
+        toolCount: c._count.tools,
+      }))
+    );
+  } catch (e) {
+    return serverError("Loading categories", e);
+  }
 }
 
 /** Admin: create a category. */
@@ -41,33 +46,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Category name is required." }, { status: 400 });
   }
 
-  const existingName = await db.category.findFirst({ where: { name } });
-  if (existingName) {
+  try {
+    const existingName = await db.category.findFirst({ where: { name } });
+    if (existingName) {
+      return NextResponse.json(
+        { error: `A category named “${name}” already exists.` },
+        { status: 409 }
+      );
+    }
+
+    const slug = await uniqueCategorySlug(name);
+    const category = await db.category.create({
+      data: {
+        name,
+        slug,
+        description: typeof b.description === "string" ? b.description.trim() : "",
+        icon: typeof b.icon === "string" && b.icon.trim() ? b.icon.trim() : "Sparkles",
+      },
+    });
+
     return NextResponse.json(
-      { error: `A category named “${name}” already exists.` },
-      { status: 409 }
+      {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        icon: category.icon,
+        toolCount: 0,
+      },
+      { status: 201 }
     );
+  } catch (e) {
+    return serverError("Creating the category", e);
   }
-
-  const slug = await uniqueCategorySlug(name);
-  const category = await db.category.create({
-    data: {
-      name,
-      slug,
-      description: typeof b.description === "string" ? b.description.trim() : "",
-      icon: typeof b.icon === "string" && b.icon.trim() ? b.icon.trim() : "Sparkles",
-    },
-  });
-
-  return NextResponse.json(
-    {
-      id: category.id,
-      name: category.name,
-      slug: category.slug,
-      description: category.description,
-      icon: category.icon,
-      toolCount: 0,
-    },
-    { status: 201 }
-  );
 }

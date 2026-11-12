@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   Archive,
   Check,
   Copy,
+  Database,
   EyeOff,
   FolderTree,
   Inbox,
@@ -15,6 +17,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
+  RefreshCw,
   Rocket,
   Search,
   ShieldCheck,
@@ -23,6 +26,7 @@ import {
   UserPlus,
   Wrench,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +59,7 @@ import {
   getAdminMessages,
   getAdminSession,
   getAdminTools,
+  getSystemStatus,
   setToolStatus,
   ApiError,
 } from "@/lib/api";
@@ -63,6 +68,7 @@ import {
   type AdminBlogOverviewDTO,
   type CategoryDTO,
   type ContactMessageDTO,
+  type SystemStatusDTO,
   type ToolDTO,
   type ToolStatus,
 } from "@/lib/types";
@@ -387,6 +393,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
+      {/* deployment health — silent when everything is fine */}
+      <SystemStatusBanner />
+
       {/* stats */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Published" value={stats.published} icon={<Rocket className="size-4" />} />
@@ -575,6 +584,70 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+// ------------------------------------------------------- system status banner
+
+/**
+ * Deployment health at a glance. A serverless deploy can come up green with
+ * an unreachable or schema-less database (nothing in the build touches it) —
+ * every admin action would then fail with an opaque 500. This banner names
+ * the problem and the fix. Renders nothing while the system is healthy.
+ */
+function SystemStatusBanner() {
+  const [status, setStatus] = useState<SystemStatusDTO | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  const check = useCallback(async () => {
+    setChecking(true);
+    try {
+      setStatus(await getSystemStatus());
+    } catch {
+      setStatus(null); // endpoint unreachable — the data panels surface that case
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void check();
+  }, [check]);
+
+  if (checking || !status) return null;
+  const db = status.database;
+  if (db.connected && db.schemaReady) return null;
+
+  return (
+    <Alert variant="destructive" className="mt-6" role="alert">
+      <Database className="size-4" aria-hidden="true" />
+      <AlertTitle>
+        {db.connected ? "Database schema is missing" : "Can’t reach the database"}
+      </AlertTitle>
+      <AlertDescription>
+        {db.connected ? (
+          <>
+            The database is connected but its tables were never created
+            {db.missingTables.length > 0 && <> (missing: {db.missingTables.join(", ")})</>}. Every save and import
+            will fail until the schema exists. <strong>Fix:</strong> redeploy on Netlify — the build now provisions
+            the schema automatically (<code>pnpm db:setup</code>) — or run <code>pnpm db:setup</code> from a
+            checkout with your Neon URL.
+          </>
+        ) : (
+          <>
+            The server said: <em className="break-words">{db.error ?? "unknown error"}</em>.
+            <strong> Fix:</strong> check <code>DATABASE_URL</code> in your hosting environment variables (the Neon
+            pooled URL) and redeploy.
+          </>
+        )}
+      </AlertDescription>
+      <div className="mt-3">
+        <Button variant="outline" size="sm" onClick={() => void check()}>
+          <RefreshCw className="size-3.5" aria-hidden="true" />
+          Check again
+        </Button>
+      </div>
+    </Alert>
   );
 }
 

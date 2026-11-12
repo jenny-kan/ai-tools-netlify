@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { isAdminAuthenticated, unauthorized } from "@/lib/admin-auth";
 import { forbiddenOrigin, isSameOrigin } from "@/lib/security";
 import { missingPublishFields, serializeTool } from "@/lib/tool-service";
+import { serverError } from "@/lib/route-errors";
 
 const VALID_STATUSES = new Set(["DRAFT", "PUBLISHED", "ARCHIVED"]);
 
@@ -31,29 +32,33 @@ export async function PATCH(
     );
   }
 
-  const existing = await db.tool.findUnique({ where: { id } });
-  if (!existing) {
-    return NextResponse.json({ error: "Tool not found." }, { status: 404 });
-  }
-
-  if (status === "PUBLISHED") {
-    const missing = missingPublishFields(existing);
-    if (missing.length > 0) {
-      return NextResponse.json(
-        {
-          error: "Cannot publish — required fields are missing.",
-          missing,
-        },
-        { status: 422 }
-      );
+  try {
+    const existing = await db.tool.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Tool not found." }, { status: 404 });
     }
+
+    if (status === "PUBLISHED") {
+      const missing = missingPublishFields(existing);
+      if (missing.length > 0) {
+        return NextResponse.json(
+          {
+            error: "Cannot publish — required fields are missing.",
+            missing,
+          },
+          { status: 422 }
+        );
+      }
+    }
+
+    const tool = await db.tool.update({
+      where: { id },
+      data: { status },
+      include: { category: true },
+    });
+
+    return NextResponse.json({ tool: serializeTool(tool) });
+  } catch (e) {
+    return serverError("Changing the tool status", e);
   }
-
-  const tool = await db.tool.update({
-    where: { id },
-    data: { status },
-    include: { category: true },
-  });
-
-  return NextResponse.json({ tool: serializeTool(tool) });
 }

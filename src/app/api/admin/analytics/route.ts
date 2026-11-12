@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdminAuthenticated, unauthorized } from "@/lib/admin-auth";
+import { serverError } from "@/lib/route-errors";
 import type { AnalyticsDashboardResponse, AnalyticsDailyPoint, AnalyticsTopEntry } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -19,7 +20,8 @@ export async function GET() {
   const since30d = new Date(Date.now() - 30 * DAY_MS);
   const todayStart = new Date(dayKey(new Date()) + "T00:00:00.000Z");
 
-  const [views14d, totalViews, totalSessions, views30d, viewsToday, recentAudit] = await Promise.all([
+  try {
+    const [views14d, totalViews, totalSessions, views30d, viewsToday, recentAudit] = await Promise.all([
     db.pageView.findMany({
       where: { createdAt: { gte: since14d } },
       select: { path: true, referrer: true, sessionId: true, toolSlug: true, createdAt: true },
@@ -86,4 +88,7 @@ export async function GET() {
   };
 
   return NextResponse.json(payload);
+  } catch (e) {
+    return serverError("Loading analytics", e);
+  }
 }

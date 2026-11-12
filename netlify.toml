@@ -6,14 +6,19 @@
 # set, and scripts/postbuild.mjs skips the self-hosting packaging).
 #
 # pnpm is picked up automatically via the `packageManager` field in
-# package.json (corepack), so `pnpm install` + the `postinstall` hook
-# (`prisma generate`) run as-is.
+# package.json (corepack).
 #
-# `pnpm db:setup` runs `prisma db push` BEFORE the build: a fresh Neon
+# ⚠ Do NOT rely on install hooks for `prisma generate`: with a warm dependency
+# cache Netlify's `pnpm install` is a no-op ("Already up to date") and never
+# runs `postinstall` — and src/generated/prisma is gitignored, so a fresh
+# checkout has no Prisma client. `pnpm db:setup` therefore runs
+# `prisma generate` itself (and the `build` script repeats it — idempotent).
+#
+# `pnpm db:setup` also runs `prisma db push` BEFORE the build: a fresh Neon
 # database gets its tables created automatically on the first deploy (and
-# stays in sync after schema changes). It is non-fatal by design — a failed
-# sync logs a loud warning and the build continues; the admin dashboard's
-# System status banner then shows the exact problem at runtime.
+# stays in sync after schema changes). The push is non-fatal by design — a
+# failed sync logs a loud warning and the build continues; the admin
+# dashboard's System status banner then shows the exact problem at runtime.
 #
 # Environment variables to set in the Netlify UI (or via `netlify env:set`) —
 # same table as the Vercel walkthrough in DEPLOYMENT.md §1.4:

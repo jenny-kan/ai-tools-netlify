@@ -61,13 +61,21 @@ pnpm db:seed           # seeds the catalog + demo blog data
    | `DONATE_PROVIDER_URL` | optional — real donation page instead of the demo |
    | `SOURCE_DOWNLOAD_PUBLIC` | optional — set `"true"` only if you want the footer's source-zip download (`/api/download`) open to everyone. Default in production: **admin session required** |
 
-3. Deploy. Nothing else to configure:
-   - `postinstall` runs `prisma generate` — the client is generated from the
-     single PostgreSQL schema.
-   - The `build` script detects serverless hosts (`VERCEL`/`NETLIFY`) and
-     skips the standalone packaging meant for self-hosting — they deploy the
-     regular Next.js build output.
-   - API routes run on the Node.js runtime, which the `pg` driver requires.
+3. Deploy. One setting worth making explicit — set the **Build Command** to
+   `pnpm db:setup && pnpm build` (Project → Settings → General → Build & Output):
+   - it runs `prisma generate` + `prisma db push` **before** `next build`, so
+     the gitignored Prisma client exists and the Neon schema is provisioned
+     on the first deploy — exactly like the Netlify flow (§2.3).
+   - the framework default (`next build` alone) relies on install hooks that
+     warm dependency caches can skip — with the same outcome as the Netlify
+     failure mode in the Troubleshooting table below.
+   - the `build` script itself also runs `prisma generate` first, so plain
+     `pnpm build` is covered even without the setting.
+
+   The `build` script detects serverless hosts (`VERCEL`/`NETLIFY`) and skips
+   the standalone packaging meant for self-hosting — they deploy the regular
+   Next.js build output. API routes run on the Node.js runtime, which the
+   `pg` driver requires.
 
    **No GitHub?** Deploy straight from a checkout with the Vercel CLI:
    `pnpm dlx vercel@latest login && pnpm dlx vercel@latest --prod` (still set
@@ -117,8 +125,8 @@ directory at `.next` — Netlify picks up pnpm automatically via the
 ### 2.2 Environment variables
 
 Exactly the same table as Vercel (§1.4) — `DATABASE_URL` on the **pooled**
-Neon connection. Netlify exposes env vars to the entire build, so
-`postinstall`'s `prisma generate` sees the Postgres schema regardless. Set
+Neon connection. Netlify exposes env vars to the entire build, so both the
+`prisma generate` and `prisma db push` steps of `pnpm db:setup` see them. Set
 them **before** the first deploy: the build fails closed without
 `DATABASE_URL` (the sitemap generation touches the database).
 
@@ -131,10 +139,14 @@ branch if you want preview data isolated, but always keep the pooled URL.
 
 ### 2.3 Automatic schema provisioning
 
-**The Netlify build creates/updates the database schema for you** —
-`netlify.toml` runs `pnpm db:setup` (→ `prisma db push`, non-destructive)
-before `next build`. A fresh Neon database gets its tables on the first
-deploy; later deploys are a no-op unless the schema changed.
+**The Netlify build generates the Prisma client and creates/updates the
+database schema for you** — `netlify.toml` runs `pnpm db:setup` (→ `prisma
+generate` + `prisma db push`, non-destructive) before `pnpm build` (which
+re-runs `prisma generate`, idempotently). The generate step is essential:
+`src/generated/prisma` is gitignored (fresh checkout = no client) and a warm
+Netlify dependency cache makes `pnpm install` a no-op that skips
+`postinstall`. A fresh Neon database gets its tables on the first deploy;
+later deploys are a no-op unless the schema changed.
 
 The step is deliberately **non-fatal**: if it can't reach the database the
 build logs a loud warning and continues. The site then deploys, but every
@@ -287,6 +299,7 @@ Put a reverse proxy (Caddy/nginx) in front for TLS.
 | Many `Timed out fetching a new connection` errors | You're using the **direct** (non-pooled) URL at runtime — switch `DATABASE_URL` to the pooled connection |
 | Reset emails not arriving | No `RESEND_API_KEY` (dry-run) — check the server logs for `[email:dry-run]` |
 | Cross-origin 403 on your own forms | The request reached the app through an unexpected proxy chain — check that `Sec-Fetch-Site` headers aren't stripped by your proxy, and see `isSameOrigin` in `src/lib/security.ts` |
-| Prisma `did not initialize yet` on serverless | Ensure `prisma generate` runs during build (it does — the `postinstall` script runs it; don't skip it) |
+| Prisma `did not initialize yet` on serverless | Ensure `prisma generate` runs during build — it does: `pnpm db:setup` runs it before `prisma db push`, and the `build` script runs it again before `next build` (v1.3.2+). Don't strip either |
+| Netlify build fails: `Can't resolve '@/generated/prisma/client'` | The Prisma client wasn't generated: fresh checkouts have no `src/generated` (gitignored), Prisma 7's `db push` doesn't create it, and a **warm dependency cache** makes Netlify's install a no-op that skips `postinstall`. Fixed in v1.3.2 (`db:setup` + `build` both generate). Quick unblock without touching code: override the build command in the Netlify UI with `pnpm db:generate && pnpm db:setup && pnpm build` |
 | `DATABASE_URL must be a postgres:// connection string` | The env var is missing or not a Postgres URL — this app is PostgreSQL-only. Set it to your Neon pooled URL (see §1.4) |
 | Netlify deploy fails during `next build` | Usually a missing env var — the build fails closed without `DATABASE_URL` (the sitemap step touches the database). Set the §1.4 variables and redeploy. For plugin/runtime errors, check the build log — the shipped `netlify.toml` pins no plugin version, so the Next.js runtime always resolves its latest |

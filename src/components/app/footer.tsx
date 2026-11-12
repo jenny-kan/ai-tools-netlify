@@ -34,24 +34,6 @@ export function Footer({ navigate }: { navigate: AppNavigate }) {
                 <Heart className="size-3.5" aria-hidden="true" />
                 Support us — donate
               </button>
-              <a
-                href="/api/download"
-                download
-                title="Clean, deploy-ready .zip — source, configs and docs. No secrets, no database, no git history."
-                className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <Download className="size-3.5" aria-hidden="true" />
-                Download source package
-              </a>
-              <a
-                href="/api/tools/export"
-                download
-                title="All published tools as a spreadsheet-friendly CSV (Excel / Google Sheets)."
-                className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <FileSpreadsheet className="size-3.5" aria-hidden="true" />
-                Download tools as CSV
-              </a>
             </div>
           </div>
 

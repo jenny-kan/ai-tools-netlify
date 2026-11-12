@@ -1,4 +1,9 @@
-# AI Tool Finder
+# ai-tools-central
+
+> The site name, title and brand strings live in one place —
+> **`src/lib/site-config.ts`** (`SITE_NAME`). Change it there and the header
+> wordmark, tab titles, PWA manifest, OpenGraph cards, emails and package
+> file names all follow automatically.
 
 A production-ready directory of free and paid AI tools — with a blogger-powered
 editorial blog, a full admin dashboard, and privacy-friendly analytics. Built as
@@ -68,16 +73,17 @@ sign in as admin → *Blog* tab → approve or reject them.
 | `pnpm db:push` | Apply `prisma/schema.prisma` to the database |
 | `pnpm db:seed` | Seed the tool catalog + demo blog data (idempotent) |
 | `pnpm db:migrate` / `pnpm db:deploy` | Create migrations locally / apply them in CI |
-| `pnpm package` | Build the clean source zip (`download/ai-tool-finder-<version>.zip`) |
+| `pnpm package` | Build the clean source zip (`download/ai-tools-central-<version>.zip`) |
 
 ## Download the source package
 
-The footer of every page has a **“Download source package”** button — one
-click streams a clean, deploy-ready `.zip` (`GET /api/download`) built from
-the same manifest as `pnpm package`.
+Run **`pnpm package`** to build a clean, deploy-ready `.zip` in
+`download/` (the same builder serves `GET /api/download`). The public UI no
+longer links to it — the footer download buttons were removed; the endpoint
+stays for admin/self-host use.
 
 Inside the zip: all source, configs, docs and the pnpm lockfile under a
-single `ai-tool-finder/` folder (including `netlify.toml` for one-click
+single `ai-tools-central/` folder (including `netlify.toml` for one-click
 Netlify deploys). Never inside: `.env`, `node_modules`, build output, logs
 or git history. After unzipping:
 
@@ -96,10 +102,11 @@ convenience); in production it requires an admin session unless
 
 ## Export the tool catalog as CSV
 
-`GET /api/tools/export` (footer → **“Download tools as CSV”**) streams every
-published tool as a spreadsheet-friendly CSV: UTF-8 BOM + CRLF so Excel and
-Google Sheets open it cleanly, every field quoted (RFC 4180), sorted by
-category. The column headers deliberately match the bulk-importer's
+`GET /api/tools/export` streams every published tool as a spreadsheet-
+friendly CSV: UTF-8 BOM + CRLF so Excel and Google Sheets open it cleanly,
+every field quoted (RFC 4180), sorted by category. The public footer no
+longer links to it; call the endpoint directly (or curl it) when you need a
+catalog snapshot. The column headers deliberately match the bulk-importer's
 auto-mapping, so **export → edit in a spreadsheet → re-import round-trips**
 (`/?view=admin` → Tools → Bulk import).
 
@@ -115,6 +122,11 @@ needs the admin + email + site variables. See
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** — step-by-step guides for
   **Netlify + Neon** / **Vercel + Neon**, Supabase, Railway/Render, and
   Docker self-hosting, plus a production hardening checklist.
+- **[NETLIFY-DEPLOYMENT-LESSONS.md](./NETLIFY-DEPLOYMENT-LESSONS.md)** —
+  the distilled war stories: every Netlify + Neon failure this project hit
+  (empty-DB 500s, the `@/generated/prisma/client` cold-checkout build
+  break, cached-install hooks) with root causes, the fatal/non-fatal build
+  design that fixed it, and a symptom → fix debug playbook.
 - **[DEPLOY-MACOS.md](./DEPLOY-MACOS.md)** — running it on a local Mac
   (tested against macOS 10.15 Catalina): Node 22 via nvm, build & start,
   auto-start at login, backups, updates.

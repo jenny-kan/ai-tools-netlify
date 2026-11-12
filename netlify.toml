@@ -5,26 +5,24 @@
 # "standalone"` in next.config.ts is skipped automatically when NETLIFY is
 # set, and scripts/postbuild.mjs skips the self-hosting packaging).
 #
-# pnpm is picked up automatically via the `packageManager` field in
-# package.json (corepack).
+# ── IMPORTANT: do NOT rely on install hooks for `prisma generate` ────────────
+# Netlify caches node_modules between builds; when the cache is warm,
+# `pnpm install` finishes in ~16ms as a NO-OP and the postinstall hook
+# never runs. On top of that, Prisma 7's `prisma db push` no longer runs
+# the generator (Prisma ≤6 did), and the generated client lives in
+# src/generated/prisma which is gitignored — a cold checkout has none.
+# The result is `next build` failing with:
+#     Module not found: Can't resolve '@/generated/prisma/client'
 #
-# ⚠ Do NOT rely on install hooks for `prisma generate`: with a warm dependency
-# cache Netlify's `pnpm install` is a no-op ("Already up to date") and never
-# runs `postinstall` — and src/generated/prisma is gitignored, so a fresh
-# checkout has no Prisma client. `pnpm db:setup` therefore runs
-# `prisma generate` itself (and the `build` script repeats it — idempotent).
-#
-# `pnpm db:setup` also runs `prisma db push` BEFORE the build: a fresh Neon
-# database gets its tables created automatically on the first deploy (and
-# stays in sync after schema changes). The push is non-fatal by design — a
-# failed sync logs a loud warning and the build continues; the admin
-# dashboard's System status banner then shows the exact problem at runtime.
+# Therefore generation MUST be part of the explicit build chain:
+#   1. `pnpm db:setup` → prisma generate (FATAL) + prisma db push (non-fatal)
+#   2. `pnpm build`    → prisma generate again + next build + postbuild
+#      (belt-and-braces: `build` works standalone on Vercel/Railway/Docker too)
 #
 # Environment variables to set in the Netlify UI (or via `netlify env:set`) —
-# same table as the Vercel walkthrough in DEPLOYMENT.md §1.4:
+# same table as the walkthrough in DEPLOYMENT.md:
 #   DATABASE_URL (Neon POOLED, :6543, +?sslmode=require&connection_limit=1)
-#   DIRECT_DATABASE_URL (optional — Neon direct :5432; when missing, the
-#                        direct host is derived from the pooled URL)
+#   DIRECT_DATABASE_URL (Neon direct, :5432)
 #   ADMIN_PASSWORD / ADMIN_SECRET / NEXT_PUBLIC_SITE_URL (+ optional email)
 
 [build]

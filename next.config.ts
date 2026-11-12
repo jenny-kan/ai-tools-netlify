@@ -54,6 +54,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Dev-only: the Next 16 dev server validates the HMR WebSocket's Origin
+  // and REJECTS anything that isn't "localhost" by default — including
+  // 127.0.0.1 and the sandbox/preview proxy (*.space-z.ai). A rejected HMR
+  // socket makes dev hydration stall SILENTLY (SSR HTML with no event
+  // handlers). Test dev builds on http://localhost:3000, and keep the
+  // proxy origin allowed here. No effect on production builds.
+  allowedDevOrigins: ["*.space-z.ai"],
   // Self-hosting friendly (Docker/bare-metal/launchd use it). Skipped on the
   // serverless hosts (see isServerlessHost above) — Vercel ignores it anyway,
   // and Netlify's Next.js runtime builds functions from the regular output.

@@ -1,6 +1,6 @@
 # Security model
 
-This document summarizes how AI Tool Finder protects itself, what a formal
+This document summarizes how ai-tools-central protects itself, what a formal
 audit found and fixed, and what you should harden when you outgrow the demo.
 
 ## Threat model

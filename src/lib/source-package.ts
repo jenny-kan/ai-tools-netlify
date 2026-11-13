@@ -6,7 +6,7 @@ import JSZip from "jszip";
  * Clean source-package builder.
  *
  * Produces a zip of the deployable project — application code, configs, docs
- * and lockfile — with a single top-level `ai-tool-finder/` folder so it
+ * and lockfile — with a single top-level `ai-tools-central/` folder so it
  * extracts tidily. Deliberately EXCLUDED (see SECURITY.md):
  *
  *   - `node_modules/`, `.next/`           → rebuilt from the lockfile
@@ -21,7 +21,7 @@ import JSZip from "jszip";
  *   - `pnpm package`       (CLI, writes the zip into `download/`)
  */
 
-const PACKAGE_NAME = "ai-tool-finder";
+const PACKAGE_NAME = "ai-tools-central";
 
 /** Files copied verbatim into the zip root (missing optional ones are skipped). */
 const TOP_LEVEL_FILES = [

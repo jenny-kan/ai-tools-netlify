@@ -84,7 +84,7 @@ export async function GET(req: Request) {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="ai-tool-finder-tools.csv"',
+      "Content-Disposition": 'attachment; filename="ai-tools-central-tools.csv"',
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
     },

@@ -76,8 +76,8 @@ npm install -g pnpm@12.18.0
 3. Put the folder somewhere permanent, e.g. your home folder:
 
 ```bash
-mv ~/Downloads/ai-tool-finder ~/ai-tool-finder
-cd ~/ai-tool-finder
+mv ~/Downloads/ai-tools-central ~/ai-tools-central
+cd ~/ai-tools-central
 ```
 
 Don't leave it in `~/Downloads` — the auto-start configuration in Section 7
@@ -86,7 +86,7 @@ bakes in the folder path, and Downloads gets cleaned up by some tools.
 > Files extracted from a browser-downloaded zip may carry macOS quarantine
 > attributes. That's harmless here (all native code is installed fresh by
 > pnpm in the next step), but if macOS ever complains:
-> `xattr -dr com.apple.quarantine ~/ai-tool-finder`
+> `xattr -dr com.apple.quarantine ~/ai-tools-central`
 
 ## 4. Configure `.env` — the database
 
@@ -96,7 +96,7 @@ a Postgres database. The easiest (and recommended) option is a free
 prefer, but nothing in this project needs one.
 
 ```bash
-cd ~/ai-tool-finder
+cd ~/ai-tools-central
 cp .env.example .env
 open -e .env
 ```
@@ -218,7 +218,7 @@ cat > ~/Library/LaunchAgents/com.aitoolfinder.web.plist <<'EOF'
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>sh /Users/YOUR-NAME/ai-tool-finder/scripts/start-production.sh</string>
+    <string>sh /Users/YOUR-NAME/ai-tools-central/scripts/start-production.sh</string>
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
@@ -251,11 +251,11 @@ stop the running site so the database is quiet during the copy:
 launchctl unload -w ~/Library/LaunchAgents/com.aitoolfinder.web.plist  # stop (skip if not installed)
 
 cd /tmp && rm -rf aitf-update && mkdir aitf-update && cd aitf-update
-unzip ~/Downloads/ai-tool-finder-1.x.x.zip        # → ./ai-tool-finder
-cp ~/ai-tool-finder/.env ai-tool-finder/.env                  # your config
-rm -rf ~/ai-tool-finder && mv ai-tool-finder ~/ai-tool-finder
+unzip ~/Downloads/ai-tools-central-1.x.x.zip        # → ./ai-tools-central
+cp ~/ai-tools-central/.env ai-tools-central/.env                  # your config
+rm -rf ~/ai-tools-central && mv ai-tools-central ~/ai-tools-central
 
-cd ~/ai-tool-finder
+cd ~/ai-tools-central
 pnpm install --frozen-lockfile
 pnpm db:push          # apply any schema changes
 pnpm build

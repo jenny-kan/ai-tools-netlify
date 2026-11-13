@@ -1,7 +1,7 @@
 /**
  * CLI: build the clean source package.
  *
- *   pnpm package                 # writes download/ai-tool-finder-<version>.zip
+ *   pnpm package                 # writes download/ai-tools-central-<version>.zip
  *   pnpm package out/            # writes into a custom directory
  *
  * Shares the manifest with GET /api/download (src/lib/source-package.ts) so

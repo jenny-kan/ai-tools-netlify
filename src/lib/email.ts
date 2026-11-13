@@ -74,7 +74,7 @@ function withFooter(text: string): string {
   return `${wrapText(text)}
 
 — The AI Tool Finder editors
-https://ai-tool-finder.app
+https://ai-tools-central.app
 
 You received this email because you wrote to AI Tool Finder via the
 contact form. Reply to this email and a human editor will read it.`;

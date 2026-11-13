@@ -19,7 +19,7 @@ export function Footer({ navigate }: { navigate: AppNavigate }) {
               <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Sparkles className="size-4" />
               </span>
-              <span className="font-semibold">AI Tool Finder</span>
+              <span className="font-semibold">ai tools central</span>
             </div>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
               A hand-checked directory of free and paid AI tools. Describe a task, compare free
@@ -116,7 +116,7 @@ export function Footer({ navigate }: { navigate: AppNavigate }) {
 
         <div className="mt-8 flex flex-col gap-2 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>
-            © {new Date().getFullYear()} AI Tool Finder · {tools.length} curated tools ·{" "}
+            © {new Date().getFullYear()} ai tools central · {tools.length} curated tools ·{" "}
             {categories.length} categories
           </span>
           <span>

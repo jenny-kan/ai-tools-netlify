@@ -18,7 +18,7 @@ export default function NotFound() {
           href="/"
           className="mt-6 inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Back to AI Tool Finder
+          Back to ai tools central
         </Link>
       </div>
     </div>

@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
   const result = await sendEmail({
     to: blogger.email,
-    subject: "Reset your AI Tool Finder blogger password",
+    subject: "Reset your ai tools central blogger password",
     text: [
       `Hi ${blogger.name},`,
       "",

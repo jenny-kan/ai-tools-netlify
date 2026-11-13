@@ -1452,7 +1452,7 @@ const TOOLS: SeedTool[] = [
 ];
 
 async function main() {
-  console.log("Seeding AI Tool Finder catalog…");
+  console.log("Seeding ai tools central catalog…");
 
   const categoryIds = new Map<string, string>();
   for (const c of CATEGORIES) {

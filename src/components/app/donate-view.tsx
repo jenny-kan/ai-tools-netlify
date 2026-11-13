@@ -34,7 +34,7 @@ const WHY = [
 ];
 
 export function DonateView({ navigate }: { navigate: AppNavigate }) {
-  useDocumentTitle("Support AI Tool Finder — donate");
+  useDocumentTitle("Support ai tools central — donate");
   const [donorName, setDonorName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -106,7 +106,7 @@ export function DonateView({ navigate }: { navigate: AppNavigate }) {
           Support independent curation
         </Badge>
         <h1 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-          Keep AI Tool Finder free &amp; independent
+          Keep ai tools central free &amp; independent
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
           No ads in your face, no pay-to-rank listings. Donations from readers like you keep the catalog

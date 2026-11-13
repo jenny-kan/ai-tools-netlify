@@ -125,7 +125,7 @@ export function HomeView({ route, navigate }: { route: RouteState; navigate: App
           __html: safeJsonLd({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            name: "AI Tool Finder",
+            name: "ai tools central",
             description:
               "A hand-checked directory of free and paid AI tools — describe a task and find the right AI tool, with free-plan limits and pricing.",
             potentialAction: {

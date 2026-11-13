@@ -6,7 +6,7 @@ import { sanitizeText } from "@/lib/security";
  * Why Resend? Free tier (3,000 emails/month, 100/day), a single HTTPS call
  * with an API key — no SMTP daemon, no SDK dependency. Configure with:
  *   RESEND_API_KEY=re_xxx            (required for real delivery)
- *   RESEND_FROM="AI Tool Finder <noreply@yourdomain.com>"
+ *   RESEND_FROM="ai tools central <noreply@yourdomain.com>"
  *   CONTACT_REPLY_TO=editor@yourdomain.com   (Reply-To header, optional)
  *
  * Without RESEND_API_KEY the module runs in "dry-run" mode: the reply is
@@ -73,10 +73,10 @@ function wrapText(text: string, width = 72): string {
 function withFooter(text: string): string {
   return `${wrapText(text)}
 
-— The AI Tool Finder editors
+— The ai tools central editors
 https://ai-tools-central.app
 
-You received this email because you wrote to AI Tool Finder via the
+You received this email because you wrote to ai tools central via the
 contact form. Reply to this email and a human editor will read it.`;
 }
 
@@ -87,7 +87,7 @@ export function isEmailDryRun(): boolean {
 export function senderAddress(): string {
   return (
     process.env.RESEND_FROM ??
-    "AI Tool Finder <onboarding@resend.dev>"
+    "ai tools central <onboarding@resend.dev>"
   );
 }
 

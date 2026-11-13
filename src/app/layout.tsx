@@ -31,8 +31,8 @@ const description =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "AI Tool Finder — Find the right AI tool for any task",
-    template: "%s · AI Tool Finder",
+    default: "ai tools central — Find the right AI tool for any task",
+    template: "%s · ai tools central",
   },
   description,
   keywords: [
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
     "AI blog",
     "how to use AI tools",
   ],
-  applicationName: "AI Tool Finder",
-  authors: [{ name: "AI Tool Finder editors" }],
-  creator: "AI Tool Finder",
+  applicationName: "ai tools central",
+  authors: [{ name: "ai tools central editors" }],
+  creator: "ai tools central",
   // NOTE: no blanket canonical here — the app serves many logical pages
   // (tools, posts, views) from the "/" route via URL params, and a site-wide
   // canonical:"/" would tell crawlers every sitemap URL is a duplicate of the
@@ -67,8 +67,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName: "AI Tool Finder",
-    title: "AI Tool Finder — Find the right AI tool for any task",
+    siteName: "ai tools central",
+    title: "ai tools central — Find the right AI tool for any task",
     description:
       "Describe a task — like “transcribe a meeting” — and instantly find AI tools that do it, with free-plan details and pricing. Plus guides on using AI tools effectively.",
     url: siteUrl,
@@ -78,13 +78,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1344,
         height: 768,
-        alt: "AI Tool Finder — a hand-checked directory of free and paid AI tools",
+        alt: "ai tools central — a hand-checked directory of free and paid AI tools",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Tool Finder — Find the right AI tool for any task",
+    title: "ai tools central — Find the right AI tool for any task",
     description:
       "Describe a task and instantly find AI tools that do it — free plans, trials and pricing checked by editors.",
     images: ["/og-image.png"],

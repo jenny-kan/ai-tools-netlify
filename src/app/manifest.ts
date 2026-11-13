@@ -7,8 +7,8 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AI Tool Finder — Find the right AI tool for any task",
-    short_name: "AI Tool Finder",
+    name: "ai tools central — Find the right AI tool for any task",
+    short_name: "ai tools central",
     description:
       "A hand-checked directory of free and paid AI tools. Describe a task and instantly find AI tools that do it, with free-plan limits, free trials and pricing.",
     start_url: "/",

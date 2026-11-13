@@ -1,4 +1,4 @@
-# Running AI Tool Finder on a local Mac (macOS 10.15 Catalina)
+# Running ai tools central on a local Mac (macOS 10.15 Catalina)
 
 Step-by-step guide to running this site on your own Mac at
 `http://localhost:3000` — installed from the source zip, started at login,

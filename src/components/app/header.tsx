@@ -16,7 +16,7 @@ export function Header({ route, navigate }: { route: RouteState; navigate: AppNa
           type="button"
           onClick={() => navigate({ view: "home" }, { scroll: true })}
           className="flex items-center gap-2 rounded-md px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="AI Tool Finder — home"
+          aria-label="ai tools central — home"
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
             <Sparkles className="size-4" />
@@ -24,7 +24,7 @@ export function Header({ route, navigate }: { route: RouteState; navigate: AppNa
           {/* Wordmark collapses to just the icon on the smallest screens so
               the nav row never overflows horizontally (no layout shift). */}
           <span className="hidden text-base font-semibold tracking-tight min-[420px]:inline">
-            AI Tool Finder
+            ai tools central
           </span>
         </button>
 

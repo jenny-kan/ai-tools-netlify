@@ -100,7 +100,7 @@ export function MessagesInbox() {
   const openReply = (m: ContactMessageDTO) => {
     setReplying(m);
     // Pre-fill a friendly greeting; the admin edits from there.
-    setReplyText(`Hi ${m.name.split(" ")[0]},\n\nThanks for reaching out to AI Tool Finder!\n\n`);
+    setReplyText(`Hi ${m.name.split(" ")[0]},\n\nThanks for reaching out to ai tools central!\n\n`);
   };
 
   const sendReply = async () => {
